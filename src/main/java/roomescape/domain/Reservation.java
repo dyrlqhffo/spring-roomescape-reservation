@@ -10,9 +10,6 @@ public class Reservation {
 
     private ReservationTime time;
 
-    public Reservation() {
-    }
-
     public Long getId() {
         return id;
     }
