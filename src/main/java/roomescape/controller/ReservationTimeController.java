@@ -1,18 +1,19 @@
 package roomescape.controller;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import roomescape.domain.ReservationTime;
-import roomescape.dto.ReservationDto;
-import roomescape.dto.ReservationTimeDto;
+import roomescape.dto.time.ReservationTimeRequest;
+import roomescape.dto.time.ReservationTimeResponse;
+import roomescape.dto.time.create.ReservationTimeCreateRequest;
+import roomescape.dto.time.create.ReservationTimeCreateResponse;
 import roomescape.repository.ReservationTimeRepository;
 
-import java.net.URI;
 import java.util.List;
 
-@Controller
-@ResponseBody
+@RestController
+@RequestMapping("/times")
 public class ReservationTimeController {
 
     ReservationTimeRepository reservationTimeRepository;
@@ -21,21 +22,26 @@ public class ReservationTimeController {
         this.reservationTimeRepository = reservationTimeRepository;
     }
 
-    @PostMapping("/times")
-    public ResponseEntity<ReservationTimeDto> addTime(@RequestBody ReservationTimeDto dto) {
-        ReservationTimeDto time = reservationTimeRepository.addTime(dto);
-        return ResponseEntity.ok().body(time);
-    }
-
-    @GetMapping("/times")
-    public ResponseEntity<List<ReservationTime>> timeList() {
-        List<ReservationTime> list = reservationTimeRepository.findTimeList();
+    @GetMapping
+    public ResponseEntity<List<ReservationTimeResponse>> findTimes() {
+        List<ReservationTimeResponse> list = reservationTimeRepository.findTimes();
         return ResponseEntity.ok().body(list);
     }
 
-    @DeleteMapping("/times/{id}")
+    @PostMapping
+    public ResponseEntity<ReservationTimeCreateResponse> createTime(@RequestBody ReservationTimeCreateRequest request) {
+        ReservationTimeCreateResponse time = reservationTimeRepository.createTime(request);
+        return ResponseEntity.ok().body(time);
+    }
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTime(@PathVariable Long id) {
         reservationTimeRepository.deleteTime(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PostConstruct
+    public void init() {
+        createTime(new ReservationTimeCreateRequest("22:00"));
+        createTime(new ReservationTimeCreateRequest("23:00"));
     }
 }

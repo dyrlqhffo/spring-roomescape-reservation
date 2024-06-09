@@ -1,25 +1,18 @@
 package roomescape.controller;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import roomescape.domain.Reservation;
-import roomescape.dto.ReservationDto;
-import roomescape.dto.ReservationTimeDto;
+import roomescape.dto.reservation.ReservationsResponse;
+import roomescape.dto.reservation.create.ReservationCreateRequest;
+import roomescape.dto.reservation.create.ReservationCreateResponse;
+import roomescape.dto.time.ReservationTimeResponse;
 import roomescape.repository.ReservationRepository;
 import roomescape.repository.ReservationTimeRepository;
 
-import java.net.URI;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 
-@Controller
-@ResponseBody
+@RestController
+@RequestMapping("/reservations")
 public class ReservationController {
 
     private final ReservationRepository reservationRepository;
@@ -31,21 +24,20 @@ public class ReservationController {
         this.reservationTimeRepository = reservationTimeRepository;
     }
 
-    @GetMapping("/reservations")
-    public ResponseEntity<List<ReservationDto>> list() {
-        List<ReservationDto> list = reservationRepository.findReservations();
-        return ResponseEntity.ok(list);
+    @GetMapping
+    public ResponseEntity<List<ReservationsResponse>> findReservations() {
+        List<ReservationsResponse> list = reservationRepository.findReservations();
+        return ResponseEntity.ok().body(list);
     }
 
-    @PostMapping("/reservations")
-    public ResponseEntity<Reservation> create(@RequestBody ReservationDto dto) {
-        ReservationTimeDto timeDto = reservationTimeRepository.findReservationTimeById(dto.getTimeId());
-        Reservation reservation = reservationRepository.create(dto, timeDto);
-        System.out.println(reservation);
-        return ResponseEntity.ok().body(reservation);
+    @PostMapping
+    public ResponseEntity<ReservationCreateResponse> create(@RequestBody ReservationCreateRequest request) {
+        ReservationTimeResponse response = reservationTimeRepository.findTimeById(request.getTimeId());
+        ReservationCreateResponse createResponse = reservationRepository.create(request, response);
+        return ResponseEntity.ok().body(createResponse);
     }
 
-    @DeleteMapping("/reservations/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id){
         reservationRepository.deleteReservation(id);
         return ResponseEntity.noContent().build();

@@ -1,13 +1,14 @@
 package roomescape.repository;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import roomescape.domain.ReservationTime;
-import roomescape.dto.ReservationDto;
-import roomescape.dto.ReservationTimeDto;
+import roomescape.dto.time.ReservationTimeRequest;
+import roomescape.dto.time.ReservationTimeResponse;
+import roomescape.dto.time.create.ReservationTimeCreateRequest;
+import roomescape.dto.time.create.ReservationTimeCreateResponse;
 
 import java.sql.PreparedStatement;
 import java.util.List;
@@ -22,44 +23,44 @@ public class ReservationTimeRepositoryImpl implements ReservationTimeRepository{
     }
 
     @Override
-    public ReservationTimeDto addTime(ReservationTimeDto dto) {
+    public List<ReservationTimeResponse> findTimes() {
+        String sql = "select id, start_at from reservation_time";
+
+        return jdbcTemplate.query(
+                sql, (rs, rowNum) -> {
+                    ReservationTimeResponse reservationTimeResponse = new ReservationTimeResponse(
+                            rs.getLong("id"),
+                            rs.getString("start_at")
+                    );
+                    return reservationTimeResponse;
+                });
+    }
+    @Override
+    public ReservationTimeCreateResponse createTime(ReservationTimeCreateRequest request) {
         String sql = "insert into reservation_time(start_at) values(?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(con -> {
             PreparedStatement ps = con.prepareStatement(
                     sql,new String[]{"id"});
-            ps.setString(1, dto.getStartAt());
+            ps.setString(1, request.getStartAt().toString());
             return ps;
         },keyHolder);
 
-        long timeId = keyHolder.getKey().longValue();
-        return findReservationTimeById(timeId);
+        long id = keyHolder.getKey().longValue();
+        return ReservationTimeCreateResponse.toResponseDto(id, request.getStartAt().toString());
     }
+
     @Override
-    public ReservationTimeDto findReservationTimeById(Long id) {
+    public ReservationTimeResponse findTimeById(Long timeId) {
         String sql = "select id, start_at from reservation_time where id = ?";
         return jdbcTemplate.queryForObject(
-                sql, (rs, rowNum) -> {
-                    ReservationTimeDto reservationTimeDto = new ReservationTimeDto(
+                sql, (rs, rowNUm) -> {
+                    ReservationTimeResponse response = new ReservationTimeResponse(
                             rs.getLong("id"),
                             rs.getString("start_at")
                     );
-                    return reservationTimeDto;
-                }, id);
-    }
-
-    @Override
-    public List<ReservationTime> findTimeList() {
-        String sql = "select id, start_at from reservation_time";
-
-        return jdbcTemplate.query(
-                sql, (rs, rowNum) -> {
-                    ReservationTime reservationTime = new ReservationTime(
-                            rs.getLong("id"),
-                            rs.getString("start_at")
-                    );
-                    return reservationTime;
-                });
+                    return response;
+                }, timeId);
     }
 
     @Override

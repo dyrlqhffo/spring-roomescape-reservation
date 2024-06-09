@@ -1,12 +1,12 @@
-package roomescape.dto;
+package roomescape.dto.time;
 
-public class ReservationTimeDto {
+public class ReservationTimeResponse {
 
     private Long id;
 
     private String startAt;
 
-    public ReservationTimeDto(Long id, String startAt) {
+    public ReservationTimeResponse(Long id, String startAt) {
         this.id = id;
         this.startAt = startAt;
     }
